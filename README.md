@@ -28,7 +28,7 @@ To hold NoNeko is to hold **a mirror to the system**.
 | **Name** | NoNeko |
 | **Symbol** | NNEKO |
 | **Network** | 4meme (BSC-based) |
-| **Supply** | ∞ — because emptiness can’t be capped |
+| **Supply** | 10 000 000 000 (fixed) |
 | **Purpose** | To show what’s left when you remove purpose |
 
 ---
