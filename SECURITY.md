@@ -1,21 +1,32 @@
-# Security Policy
+# 🛡️ Security Policy
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+| Version | Supported |
+|----------|------------|
+| 1.0.x | ✅ |
+| 0.9.x | ⚠️ Limited support |
+| < 0.9 | ❌ Deprecated — use at your own risk |
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+---
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+If you discover a security issue, please report it responsibly.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+- 📧 Email: **security@noneko.dev**
+- 🐙 GitHub Issues: [Open an Issue](../../issues)
+
+We review all reports within **7 days**.  
+If validated, a patch or public disclosure will follow.  
+
+---
+
+## Notes
+
+NoNeko contracts are **experimental** and released under the MIT License.  
+They may contain bugs, reflections, or paradoxes.  
+Use at your own risk — and your own enlightenment.
+
+> “Security is an illusion. Integrity is a choice.”  
+> — *NoNeko Foundation*
