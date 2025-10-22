@@ -54,7 +54,7 @@ function wrap(address _shitcoin, uint256 _amount) public returns (uint256 wrappe
 •	Allows holders to “upgrade” junk tokens into wrapped, trackable form
 🌀 “One man’s trash is another man’s wrapped art.”
 
-2. NekoSafe.sol
+#### 2. `NekoSafe.sol`
 
 “A DAO without greed.”
 ```solidity
@@ -89,7 +89,7 @@ function vote(uint256 proposalId, bool support) external {
 •	Proposals self-destruct after 7 days if ignored
 •	The DAO grows through engagement, not capital
 
-🐾 Real-World Sync (SOON)
+#### 3. `🐾 Real-World Sync (SOON)`
 
 “From code to cause.”
 
