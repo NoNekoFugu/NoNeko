@@ -1,4 +1,6 @@
-# 🐈‍⬛ NoNeko
+# 🐈‍⬛ NoNeko — The Token of Emptiness  
+> Born from nothing. Representing everything.  
+> Minted on 4meme. No site, no roadmap — only Zen, irony, and code.
 
 **NoNeko — the token of emptiness.**  
 Born from nothing, representing everything.  
