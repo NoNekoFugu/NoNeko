@@ -44,16 +44,18 @@ To hold NoNeko is to hold **a mirror to the system**.
 function wrap(address _shitcoin, uint256 _amount) public returns (uint256 wrapped) {
     IERC20(_shitcoin).transferFrom(msg.sender, address(this), _amount);
     emit Wrapped(_shitcoin, msg.sender, _amount, block.timestamp);
-    return _amount;
+    return _amount; 
 }
-	•	Accepts any token from 4meme factory
-	•	Records its existence on-chain
-	•	Allows holders to “upgrade” junk tokens into wrapped, trackable form
+```
+•	Accepts any token from 4meme factory
+•	Records its existence on-chain
+•	Allows holders to “upgrade” junk tokens into wrapped, trackable form
 🌀 “One man’s trash is another man’s wrapped art.”
 
 2. NekoSafe.sol
 
 “A DAO without greed.”
+```solidity
 // Treasury logic
 // Donations, burns, and votes for real-world causes.
 
@@ -64,10 +66,12 @@ function donate(address to, uint256 amount) public onlyDAO {
 	•	Donations to verified charities and dog shelters
 	•	Community votes decide direction
 	•	Transparent Safe — no hidden admin keys
+```
 
 💡 From specula3. NekoDAO.sol
 
 “The DAO of Nobody — governance by void.”tion → contribution.
+```
 // Nobody rules, but everybody echoes.
 
 function propose(bytes calldata idea) external {
@@ -77,10 +81,12 @@ function propose(bytes calldata idea) external {
 function vote(uint256 proposalId, bool support) external {
     emit Vote(msg.sender, proposalId, support);
 }
-	•	Any wallet = 1 voice
-	•	Anonymous ideas only
-	•	Proposals self-destruct after 7 days if ignored
-	•	The DAO grows through engagement, not capital
+```
+•	Any wallet = 1 voice
+•	Anonymous ideas only
+•	Proposals self-destruct after 7 days if ignored
+•	The DAO grows through engagement, not capital
+
 🐾 Real-World Sync (SOON)
 
 “From code to cause.”
