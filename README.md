@@ -59,7 +59,7 @@ function wrap(address _shitcoin, uint256 _amount) public returns (uint256 wrappe
 
 #### 2. `NekoSafe.sol`
 
-“A DAO without greed.”
+> “A DAO without greed.”
 ```solidity
 // Treasury logic
 // Donations, burns, and votes for real-world causes.
@@ -78,7 +78,7 @@ function donate(address to, uint256 amount) public onlyDAO {
 
 💡 From specula3. NekoDAO.sol
 
-“The DAO of Nobody — governance by void.”tion → contribution.
+> “The DAO of Nobody — governance by void.”tion → contribution.
 ```
 // Nobody rules, but everybody echoes.
 
@@ -101,7 +101,7 @@ function vote(uint256 proposalId, bool support) external {
 
 #### 3. `🐾 Real-World Sync (SOON)`
 
-“From code to cause.”
+> “From code to cause.”
 
 NekoSafe and NekoDAO will include modules for real-world donations:
 	•	🐕 Dog shelters and animal rescue funds
@@ -122,7 +122,7 @@ When memes meet meaning, the blockchain becomes a mirror of compassion.
 
 ### 🧘 Tagline
 
-“Nothing matters.
+> “Nothing matters.
 But nothing is everything.”
 
 $NNEKO — The Meme Beyond Meaning.
@@ -140,13 +140,12 @@ Latest audit reports are available in the [`/audit`](./audit) directory.
 
 > Each audit preserves the **Zen minimalism** of NoNeko —  
 > simplicity as the highest form of security.
-> 
 
 ### 📜 License
 
 MIT — anyone can fork the void.
 Just don’t pretend to own it.
 
-無
+## 無
 
 
