@@ -48,7 +48,7 @@ function wrap(address _shitcoin, uint256 _amount) public returns (uint256 wrappe
     emit Wrapped(_shitcoin, msg.sender, _amount, block.timestamp);
     return _amount; 
 }
-
+```
 •	Accepts any token from 4meme factory
 
 •	Records its existence on-chain
@@ -56,8 +56,6 @@ function wrap(address _shitcoin, uint256 _amount) public returns (uint256 wrappe
 •	Allows holders to “upgrade” junk tokens into wrapped, trackable form
 
 🌀 “One man’s trash is another man’s wrapped art.”
-
-```
 
 #### 2. `NekoSafe.sol`
 
@@ -70,7 +68,6 @@ function donate(address to, uint256 amount) public onlyDAO {
     require(balance >= amount, "Insufficient funds");
     transfer(to, amount);
 }
-
 ```
 	•	Donations to verified charities and dog shelters
 
