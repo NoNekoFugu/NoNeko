@@ -1,0 +1,284 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+/**
+ * @title NekoDAO (signal-only) v1.1.1
+ * @notice Minimal governance for intent signaling. No token transfers or on-chain execution.
+ *
+ * Hardening (vs v1.1):
+ * - cancel() allowed only BEFORE voting starts and only when NOT paused (prevents post-vote censorship).
+ * - finalize() allowed even while paused (can't block outcomes).
+ * - Bounded title/description length + per-address proposal cooldown (anti-spam / state growth).
+ * - Parameter changes require a two-step: proposeParams() -> applyParams() after delay (fairness).
+ * - Removed ReentrancyGuard (not needed).
+ *
+ * Philosophy preserved: 1 addr = 1 vote; no quorum/snapshots; transparent events.
+ */
+
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+
+contract NekoDAO is Ownable, Pausable {
+    // ------------------------------
+    // Types
+    // ------------------------------
+
+    enum Choice { Against, For, Abstain }
+
+    struct Proposal {
+        uint64 id;
+        address proposer;
+        string title;        // bounded
+        string description;  // bounded
+        bytes32 ref;         // off-chain reference (IPFS/commit etc.)
+        address token;       // optional context (NekoSafe)
+        address target;      // optional context (NekoSafe verified charity)
+        uint256 amount;      // optional context
+        uint64 createdAt;
+        uint64 startAt;
+        uint64 endAt;
+        uint128 forVotes;
+        uint128 againstVotes;
+        uint128 abstainVotes;
+        bool executed;       // finalized
+        bool canceled;       // canceled before startAt
+    }
+
+    struct PendingParams {
+        uint64 votingDelay;
+        uint64 votingPeriod;
+        uint64 execCooldown;
+        uint64 appliesAt;   // timestamp when applyParams() can be called
+        bool   pending;
+    }
+
+    // ------------------------------
+    // Constants / Bounds
+    // ------------------------------
+
+    uint16  public constant MAX_TITLE_LEN       = 96;
+    uint16  public constant MAX_DESC_LEN        = 2048;
+
+    uint64  public constant MIN_VOTING_PERIOD   = 1 hours;
+    uint64  public constant MAX_VOTING_PERIOD   = 14 days;
+    uint64  public constant MAX_VOTING_DELAY    = 7 days;
+    uint64  public constant MAX_EXEC_COOLDOWN   = 7 days;
+
+    // default delays
+    uint64  public paramsChangeDelay = 24 hours; // delay for governance param changes
+    uint64  public proposalCooldown  = 10 minutes; // per-address rate limit
+
+    // ------------------------------
+    // Storage
+    // ------------------------------
+
+    uint64 public nextProposalId = 1;
+
+    // Active params
+    uint64 public votingDelay   = 0;
+    uint64 public votingPeriod  = 3 days;
+    uint64 public execCooldown  = 0;
+
+    // Pending params (two-step update)
+    PendingParams public pendingParams;
+
+    // Proposals
+    mapping(uint64 => Proposal) private _proposals;
+
+    // Voting
+    mapping(uint64 => mapping(address => bool)) public hasVoted;
+
+    // Anti-spam: last proposal time per address
+    mapping(address => uint64) public lastProposedAt;
+
+    // ------------------------------
+    // Events
+    // ------------------------------
+
+    event ParamsProposed(uint64 votingDelay, uint64 votingPeriod, uint64 execCooldown, uint64 appliesAt);
+    event ParamsApplied(uint64 votingDelay, uint64 votingPeriod, uint64 execCooldown);
+    event MetaParamsUpdated(uint64 paramsChangeDelay, uint64 proposalCooldown);
+
+    event ProposalCreated(
+        uint64 indexed id,
+        address indexed proposer,
+        string title,
+        bytes32 indexed ref,   // indexed for off-chain filtering
+        address token,
+        address target,
+        uint256 amount,
+        uint64 startAt,
+        uint64 endAt
+    );
+    event Voted(uint64 indexed id, address indexed voter, Choice choice);
+    event Finalized(
+        uint64 indexed id,
+        bool passed,
+        uint128 forVotes,
+        uint128 againstVotes,
+        uint128 abstainVotes
+    );
+    event Canceled(uint64 indexed id, address indexed by);
+
+    // ------------------------------
+    // Constructor (OZ v5)
+    // ------------------------------
+
+    /// @dev For OZ v4.x, use: constructor() { _transferOwnership(msg.sender); }
+    constructor(address initialOwner) Ownable(initialOwner) {}
+
+    // ------------------------------
+    // Admin: parameter management
+    // ------------------------------
+
+    /// @notice Propose new voting params; can be applied after paramsChangeDelay.
+    function proposeParams(
+        uint64 _votingDelay,
+        uint64 _votingPeriod,
+        uint64 _execCooldown
+    ) external onlyOwner {
+        require(_votingPeriod >= MIN_VOTING_PERIOD, "period < min");
+        require(_votingPeriod <= MAX_VOTING_PERIOD, "period > max");
+        require(_votingDelay <= MAX_VOTING_DELAY, "delay > max");
+        require(_execCooldown <= MAX_EXEC_COOLDOWN, "cooldown > max");
+
+        pendingParams = PendingParams({
+            votingDelay:  _votingDelay,
+            votingPeriod: _votingPeriod,
+            execCooldown: _execCooldown,
+            appliesAt:    uint64(block.timestamp) + paramsChangeDelay,
+            pending:      true
+        });
+
+        emit ParamsProposed(_votingDelay, _votingPeriod, _execCooldown, pendingParams.appliesAt);
+    }
+
+    /// @notice Apply previously proposed params after delay.
+    function applyParams() external onlyOwner {
+        PendingParams memory pp = pendingParams;
+        require(pp.pending, "no pending");
+        require(block.timestamp >= pp.appliesAt, "not yet");
+
+        votingDelay  = pp.votingDelay;
+        votingPeriod = pp.votingPeriod;
+        execCooldown = pp.execCooldown;
+
+        delete pendingParams;
+        emit ParamsApplied(votingDelay, votingPeriod, execCooldown);
+    }
+
+    /// @notice Update meta-delays (bounded).
+    function setMetaDelays(uint64 _paramsChangeDelay, uint64 _proposalCooldown) external onlyOwner {
+        require(_paramsChangeDelay >= 1 hours && _paramsChangeDelay <= 7 days, "paramsChangeDelay out of bounds");
+        require(_proposalCooldown <= 1 days, "proposalCooldown too large");
+        paramsChangeDelay = _paramsChangeDelay;
+        proposalCooldown  = _proposalCooldown;
+        emit MetaParamsUpdated(_paramsChangeDelay, _proposalCooldown);
+    }
+
+    function pause() external onlyOwner { _pause(); }
+    function unpause() external onlyOwner { _unpause(); }
+
+    /// @notice Cancel only BEFORE voting starts and only when NOT paused (prevents censorship mid-vote).
+    function cancel(uint64 id) external onlyOwner whenNotPaused {
+        Proposal storage p = _proposals[id];
+        require(p.id != 0, "no proposal");
+        require(!p.executed, "finalized");
+        require(!p.canceled, "already canceled");
+        require(block.timestamp < p.startAt, "voting started");
+        p.canceled = true;
+        emit Canceled(id, msg.sender);
+    }
+
+    // ------------------------------
+    // Proposals
+    // ------------------------------
+
+    function createProposal(
+        string calldata title,
+        string calldata description,
+        bytes32 ref,
+        address token,
+        address target,
+        uint256 amount
+    ) external whenNotPaused returns (uint64 id) {
+        // Anti-spam bounds
+        require(bytes(title).length > 0 && bytes(title).length <= MAX_TITLE_LEN, "title length");
+        require(bytes(description).length <= MAX_DESC_LEN, "description length");
+
+        // Per-address cooldown
+        uint64 last = lastProposedAt[msg.sender];
+        require(uint64(block.timestamp) >= last + proposalCooldown, "cooldown active");
+        lastProposedAt[msg.sender] = uint64(block.timestamp);
+
+        id = nextProposalId++;
+        uint64 created = uint64(block.timestamp);
+        uint64 start   = created + votingDelay;
+        uint64 end     = start + votingPeriod;
+
+        Proposal storage p = _proposals[id];
+        p.id          = id;
+        p.proposer    = msg.sender;
+        p.title       = title;
+        p.description = description;
+        p.ref         = ref;
+        p.token       = token;
+        p.target      = target;
+        p.amount      = amount;
+        p.createdAt   = created;
+        p.startAt     = start;
+        p.endAt       = end;
+
+        emit ProposalCreated(id, msg.sender, title, ref, token, target, amount, start, end);
+    }
+
+    function vote(uint64 id, Choice choice) external whenNotPaused {
+        Proposal storage p = _proposals[id];
+        require(p.id != 0, "no proposal");
+        require(!p.canceled, "canceled");
+        require(!p.executed, "finalized");
+        require(block.timestamp >= p.startAt, "not started");
+        require(block.timestamp < p.endAt, "ended");
+        require(!hasVoted[id][msg.sender], "already voted");
+
+        hasVoted[id][msg.sender] = true;
+
+        if (choice == Choice.For) {
+            p.forVotes += 1;
+        } else if (choice == Choice.Against) {
+            p.againstVotes += 1;
+        } else {
+            p.abstainVotes += 1;
+        }
+
+        emit Voted(id, msg.sender, choice);
+    }
+
+    /// @notice Finalize is allowed even while paused to prevent governance deadlocks.
+    function finalize(uint64 id) external {
+        Proposal storage p = _proposals[id];
+        require(p.id != 0, "no proposal");
+        require(!p.canceled, "canceled");
+        require(!p.executed, "finalized");
+        require(block.timestamp >= p.endAt, "not ended");
+        if (execCooldown > 0) {
+            require(block.timestamp >= p.endAt + execCooldown, "cooldown");
+        }
+
+        p.executed = true;
+        bool passed = (p.forVotes > p.againstVotes);
+        emit Finalized(id, passed, p.forVotes, p.againstVotes, p.abstainVotes);
+    }
+
+    // ------------------------------
+    // Views
+    // ------------------------------
+
+    function getProposal(uint64 id) external view returns (Proposal memory) {
+        return _proposals[id];
+    }
+
+    function currentTime() external view returns (uint64) {
+        return uint64(block.timestamp);
+    }
+}
