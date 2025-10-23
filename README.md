@@ -68,10 +68,14 @@ function donate(address to, uint256 amount) public onlyDAO {
     require(balance >= amount, "Insufficient funds");
     transfer(to, amount);
 }
-	•	Donations to verified charities and dog shelters
-	•	Community votes decide direction
-	•	Transparent Safe — no hidden admin keys
+
 ```
+	•	Donations to verified charities and dog shelters
+
+	•	Community votes decide direction
+
+	•	Transparent Safe — no hidden admin keys
+
 
 💡 From specula3. NekoDAO.sol
 
@@ -87,9 +91,13 @@ function vote(uint256 proposalId, bool support) external {
     emit Vote(msg.sender, proposalId, support);
 }
 ```
+
 •	Any wallet = 1 voice
+
 •	Anonymous ideas only
+
 •	Proposals self-destruct after 7 days if ignored
+
 •	The DAO grows through engagement, not capital
 
 #### 3. `🐾 Real-World Sync (SOON)`
