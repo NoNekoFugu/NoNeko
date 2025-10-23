@@ -1,0 +1,34 @@
+name: Solidity Audit
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 0 * * 0' # weekly scan
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    name: Run Slither static analysis
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Slither
+        run: |
+          sudo apt update
+          sudo apt install python3-pip -y
+          pip3 install slither-analyzer
+
+      - name: Run Slither
+        run: |
+          mkdir -p audit_reports
+          slither ./contracts --json audit_reports/slither-report.json || true
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: slither-report
+          path: audit_reports/slither-report.json
