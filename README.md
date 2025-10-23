@@ -141,7 +141,7 @@ Latest audit reports are available in the [`/audit`](./audit) directory.
 > Each audit preserves the **Zen minimalism** of NoNeko —  
 > simplicity as the highest form of security.
 
-### 📜 License
+## 📜 License
 
 MIT — anyone can fork the void.
 Just don’t pretend to own it.
