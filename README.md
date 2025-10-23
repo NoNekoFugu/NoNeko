@@ -120,16 +120,29 @@ When memes meet meaning, the blockchain becomes a mirror of compassion.
 | 3 | **Rebirth** | Integration with AI-driven bridge for cross-chain wrapped memes. |
 | 4 | **Emptiness Eternal** | No roadmap. The project dissolves into the blockchain. |
 
-🧘 Tagline
+### 🧘 Tagline
 
 “Nothing matters.
 But nothing is everything.”
 
 $NNEKO — The Meme Beyond Meaning.
 
-⸻
+## 🔍 Security & Audits
 
-📜 License
+All contracts under **NoNeko** are open, minimal, and verified.  
+Latest audit reports are available in the [`/audit`](./audit) directory.
+
+| Contract | Version | Status | Date |
+|-----------|----------|--------|------|
+| 🧘‍♂️ `NekoSafe` | v1.1 | ✅ Secure (A) | 2025-10-23 |
+| 🗳️ `NekoDAO` | v1.1.1 | ✅ Signal-Only — A / B+ | 2025-10-23 |
+| 🪙 `WrapEngine` | v1.2 | ✅ Stable — A | 2025-10-23 |
+
+> Each audit preserves the **Zen minimalism** of NoNeko —  
+> simplicity as the highest form of security.
+> 
+
+### 📜 License
 
 MIT — anyone can fork the void.
 Just don’t pretend to own it.
