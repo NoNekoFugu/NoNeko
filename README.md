@@ -50,8 +50,11 @@ function wrap(address _shitcoin, uint256 _amount) public returns (uint256 wrappe
 }
 ```
 •	Accepts any token from 4meme factory
+
 •	Records its existence on-chain
+
 •	Allows holders to “upgrade” junk tokens into wrapped, trackable form
+
 🌀 “One man’s trash is another man’s wrapped art.”
 
 #### 2. `NekoSafe.sol`
