@@ -2,7 +2,7 @@
 > Born from nothing. Representing everything.  
 > Minted on 4meme. No site, no roadmap — only Zen, irony, and code.
 > 
-> ## 🌐 Origin
+## 🌐 Origin
 
 The NoNeko token is minted and lives natively on [4meme](https://4meme.com).  
 There is no smart contract here — only the code of silence around it.
